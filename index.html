@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur de Moyenne</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('https://cdn.pixabay.com/photo/2017/01/10/19/05/books-1974890_1280.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
+
+    header {
+      background: rgba(0, 128, 255, 0.8);
+      color: white;
+      padding: 15px 20px;
+      text-align: center;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #4CAF50;
+      text-align: center;
+    }
+
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Calculateur de Moyenne - Semestre 5</h1>
+  </header>
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Module</th>
+          <th>TD</th>
+          <th>CC</th>
+          <th>Examen</th>
+          <th>Coefficient</th>
+          <th>Moyenne</th>
+        </tr>
+      </thead>
+      <tbody id="module-rows">
+        <!-- Les lignes des modules sont générées ici -->
+      </tbody>
+    </table>
+    <button id="calculate-btn">Calculer la Moyenne Générale</button>
+    <div id="general_result" class="result">Moyenne Générale: --</div>
+  </div>
+  <script>
+    const modules = [
+      { id: 'compilation', name: 'Compilation', coefficient: 3 },
+      { id: 'ihm', name: 'IHM', coefficient: 3 },
+      { id: 'se', name: 'Systèmes d\'Exploitation', coefficient: 3 },
+      { id: 'proba', name: 'Probabilités', coefficient: 2 },
+      { id: 'gl', name: 'Génie Logiciel', coefficient: 2 },
+      { id: 'pl', name: 'Programmation Logique', coefficient: 2 },
+      { id: 'economie', name: 'Économie', coefficient: 1 },
+    ];
+
+    function createModuleRows() {
+      const tbody = document.getElementById('module-rows');
+      modules.forEach(module => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${module.name}</td>
+          <td><input type="number" id="${module.id}_td" step="0.01" oninput="updateModuleAverage('${module.id}')"></td>
+          <td><input type="number" id="${module.id}_cc" step="0.01" oninput="updateModuleAverage('${module.id}')"></td>
+          <td><input type="number" id="${module.id}_exam" step="0.01" oninput="updateModuleAverage('${module.id}')"></td>
+          <td>${module.coefficient}</td>
+          <td id="${module.id}_avg">--</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function calculateModuleAverage(moduleId) {
+      const td = parseFloat(document.getElementById(`${moduleId}_td`).value) || 0;
+      const cc = parseFloat(document.getElementById(`${moduleId}_cc`).value) || 0;
+      const exam = parseFloat(document.getElementById(`${moduleId}_exam`).value) || 0;
+      return (td * 0.2) + (cc * 0.2) + (exam * 0.6);
+    }
+
+    function updateModuleAverage(moduleId) {
+      const average = calculateModuleAverage(moduleId);
+      document.getElementById(`${moduleId}_avg`).textContent = average.toFixed(2);
+    }
+
+    function calculateGeneralAverage() {
+      let totalWeightedAverage = 0;
+      let totalCoefficients = 0;
+
+      modules.forEach(module => {
+        const moduleAverage = calculateModuleAverage(module.id);
+        totalWeightedAverage += moduleAverage * module.coefficient;
+        totalCoefficients += module.coefficient;
+      });
+
+      const generalAverage = totalWeightedAverage / totalCoefficients;
+      document.getElementById('general_result').textContent = `Moyenne Générale: ${generalAverage.toFixed(2)}`;
+    }
+
+    document.getElementById('calculate-btn').addEventListener('click', calculateGeneralAverage);
+
+    // Initialiser les lignes du tableau
+    createModuleRows();
+  </script>
+</body>
+</html>
