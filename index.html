@@ -57,13 +57,20 @@
       margin-top: 20px;
       font-size: 18px;
       font-weight: bold;
-      color: #4CAF50;
       text-align: center;
     }
 
+    .result.good {
+      color: #4CAF50;
+    }
+
+    .result.bad {
+      color: #F44336;
+    }
+
     button {
-      display: block;
-      margin: 20px auto;
+      display: inline-block;
+      margin: 10px;
       padding: 10px 20px;
       background: #4CAF50;
       color: white;
@@ -75,6 +82,48 @@
 
     button:hover {
       background: #45a049;
+    }
+
+    button.reset {
+      background: #F44336;
+    }
+
+    button.reset:hover {
+      background: #d32f2f;
+    }
+
+    .error {
+      color: #F44336;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .message.valid {
+      color: #4CAF50;
+    }
+
+    .message.invalid {
+      color: #F44336;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .shake {
+      animation: shake 0.5s;
     }
   </style>
 </head>
@@ -98,8 +147,13 @@
         <!-- Les lignes des modules sont générées ici -->
       </tbody>
     </table>
-    <button id="calculate-btn">Calculer la Moyenne Générale</button>
+    <div>
+      <button id="calculate-btn">Calculer la Moyenne Générale</button>
+      <button id="reset-btn" class="reset">Réinitialiser</button>
+    </div>
     <div id="general_result" class="result">Moyenne Générale: --</div>
+    <div id="error-message" class="error"></div>
+    <div id="semester-message" class="message"></div>
   </div>
   <script>
     const modules = [
@@ -118,9 +172,9 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${module.name}</td>
-          <td><input type="number" id="${module.id}_td" step="0.01" oninput="updateModuleAverage('${module.id}')"></td>
-          <td><input type="number" id="${module.id}_cc" step="0.01" oninput="updateModuleAverage('${module.id}')"></td>
-          <td><input type="number" id="${module.id}_exam" step="0.01" oninput="updateModuleAverage('${module.id}')"></td>
+          <td><input type="number" id="${module.id}_td" step="0.01" min="0" max="20" oninput="validateInput('${module.id}_td')"></td>
+          <td><input type="number" id="${module.id}_cc" step="0.01" min="0" max="20" oninput="validateInput('${module.id}_cc')"></td>
+          <td><input type="number" id="${module.id}_exam" step="0.01" min="0" max="20" oninput="validateInput('${module.id}_exam')"></td>
           <td>${module.coefficient}</td>
           <td id="${module.id}_avg">--</td>
         `;
@@ -128,33 +182,121 @@
       });
     }
 
+    function validateInput(inputId) {
+      const input = document.getElementById(inputId);
+      const value = parseFloat(input.value);
+      const errorMessage = document.getElementById('error-message');
+
+      if (isNaN(value) || value < 0 || value > 20) {
+        errorMessage.textContent = 'Veuillez entrer une valeur entre 0 et 20.';
+        input.style.borderColor = '#F44336';
+        input.classList.add('shake'); // Ajouter l'animation de vibration
+        setTimeout(() => input.classList.remove('shake'), 500); // Retirer l'animation après 0.5s
+      } else {
+        errorMessage.textContent = '';
+        input.style.borderColor = '';
+        input.classList.remove('shake');
+        updateModuleAverage(inputId.split('_')[0]);
+      }
+    }
+
     function calculateModuleAverage(moduleId) {
       const td = parseFloat(document.getElementById(`${moduleId}_td`).value) || 0;
       const cc = parseFloat(document.getElementById(`${moduleId}_cc`).value) || 0;
       const exam = parseFloat(document.getElementById(`${moduleId}_exam`).value) || 0;
+
+      if (isNaN(td) || isNaN(cc) || isNaN(exam)) {
+        return NaN;
+      }
+
       return (td * 0.2) + (cc * 0.2) + (exam * 0.6);
     }
 
     function updateModuleAverage(moduleId) {
       const average = calculateModuleAverage(moduleId);
-      document.getElementById(`${moduleId}_avg`).textContent = average.toFixed(2);
+      const avgCell = document.getElementById(`${module.id}_avg`);
+      if (!isNaN(average)) {
+        avgCell.textContent = average.toFixed(2);
+        avgCell.className = getResultClass(average);
+      } else {
+        avgCell.textContent = '--';
+        avgCell.className = '';
+      }
     }
 
     function calculateGeneralAverage() {
       let totalWeightedAverage = 0;
       let totalCoefficients = 0;
+      let hasError = false;
 
+      // Vérifier si toutes les valeurs sont valides
+      modules.forEach(module => {
+        const td = parseFloat(document.getElementById(`${module.id}_td`).value);
+        const cc = parseFloat(document.getElementById(`${module.id}_cc`).value);
+        const exam = parseFloat(document.getElementById(`${module.id}_exam`).value);
+
+        if (isNaN(td) || td < 0 || td > 20 || isNaN(cc) || cc < 0 || cc > 20 || isNaN(exam) || exam < 0 || exam > 20) {
+          hasError = true;
+          // Faire vibrer les cases invalides
+          if (isNaN(td) || td < 0 || td > 20) document.getElementById(`${module.id}_td`).classList.add('shake');
+          if (isNaN(cc) || cc < 0 || cc > 20) document.getElementById(`${module.id}_cc`).classList.add('shake');
+          if (isNaN(exam) || exam < 0 || exam > 20) document.getElementById(`${module.id}_exam`).classList.add('shake');
+        }
+      });
+
+      if (hasError) {
+        document.getElementById('error-message').textContent = 'Veuillez corriger les valeurs erronées (doivent être entre 0 et 20).';
+        document.getElementById('general_result').textContent = 'Moyenne Générale: --';
+        document.getElementById('semester-message').textContent = '';
+        return; // Ne pas calculer la moyenne si une valeur est erronée
+      }
+
+      // Calculer la moyenne générale si toutes les valeurs sont valides
       modules.forEach(module => {
         const moduleAverage = calculateModuleAverage(module.id);
-        totalWeightedAverage += moduleAverage * module.coefficient;
-        totalCoefficients += module.coefficient;
+        if (!isNaN(moduleAverage)) {
+          totalWeightedAverage += moduleAverage * module.coefficient;
+          totalCoefficients += module.coefficient;
+        }
       });
 
       const generalAverage = totalWeightedAverage / totalCoefficients;
-      document.getElementById('general_result').textContent = `Moyenne Générale: ${generalAverage.toFixed(2)}`;
+      const generalResult = document.getElementById('general_result');
+      const semesterMessage = document.getElementById('semester-message');
+
+      generalResult.textContent = `Moyenne Générale: ${generalAverage.toFixed(2)}`;
+      generalResult.className = `result ${getResultClass(generalAverage)}`;
+
+      if (generalAverage >= 10) {
+        semesterMessage.textContent = 'Semestre valide';
+        semesterMessage.className = 'message valid';
+      } else {
+        semesterMessage.textContent = '3mitha l7aj';
+        semesterMessage.className = 'message invalid';
+      }
+    }
+
+    function resetForm() {
+      modules.forEach(module => {
+        document.getElementById(`${module.id}_td`).value = '';
+        document.getElementById(`${module.id}_cc`).value = '';
+        document.getElementById(`${module.id}_exam`).value = '';
+        document.getElementById(`${module.id}_avg`).textContent = '--';
+        document.getElementById(`${module.id}_avg`).className = '';
+      });
+
+      document.getElementById('general_result').textContent = 'Moyenne Générale: --';
+      document.getElementById('general_result').className = 'result';
+      document.getElementById('error-message').textContent = '';
+      document.getElementById('semester-message').textContent = '';
+    }
+
+    function getResultClass(average) {
+      return average >= 10 ? 'good' : 'bad';
     }
 
     document.getElementById('calculate-btn').addEventListener('click', calculateGeneralAverage);
+    document.getElementById('reset-btn').addEventListener('click', resetForm);
 
     // Initialiser les lignes du tableau
     createModuleRows();
