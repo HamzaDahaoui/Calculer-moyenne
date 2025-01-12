@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculateur de Moyenne</title>
   <style>
+    /* Styles de base */
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
@@ -17,20 +18,20 @@
     header {
       background: rgba(0, 128, 255, 0.8);
       color: white;
-      padding: 15px 20px;
+      padding: 1rem;
       text-align: center;
       box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     header h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 1.5rem;
     }
 
     .container {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
+      max-width: 90%;
+      margin: 2rem auto;
+      padding: 1rem;
       background: rgba(255, 255, 255, 0.9);
       border-radius: 10px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
@@ -39,11 +40,13 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 15px;
+      margin-bottom: 1rem;
+      overflow-x: auto; /* Permet le défilement horizontal sur les petits écrans */
+      display: block; /* Nécessaire pour le défilement */
     }
 
     th, td {
-      padding: 10px;
+      padding: 0.75rem;
       text-align: center;
       border: 1px solid #ccc;
     }
@@ -53,9 +56,17 @@
       color: white;
     }
 
+    input[type="number"] {
+      width: 80%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
     .result {
-      margin-top: 20px;
-      font-size: 18px;
+      margin-top: 1.5rem;
+      font-size: 1.25rem;
       font-weight: bold;
       text-align: center;
     }
@@ -70,13 +81,13 @@
 
     button {
       display: inline-block;
-      margin: 10px;
-      padding: 10px 20px;
+      margin: 0.5rem;
+      padding: 0.75rem 1.5rem;
       background: #4CAF50;
       color: white;
       border: none;
       border-radius: 5px;
-      font-size: 16px;
+      font-size: 1rem;
       cursor: pointer;
     }
 
@@ -94,14 +105,14 @@
 
     .error {
       color: #F44336;
-      font-size: 14px;
+      font-size: 0.875rem;
       text-align: center;
-      margin-top: 10px;
+      margin-top: 0.5rem;
     }
 
     .message {
-      margin-top: 20px;
-      font-size: 18px;
+      margin-top: 1.5rem;
+      font-size: 1.25rem;
       font-weight: bold;
       text-align: center;
     }
@@ -124,6 +135,52 @@
 
     .shake {
       animation: shake 0.5s;
+    }
+
+    /* Media Queries pour les écrans de petite taille (mobiles) */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.25rem;
+      }
+
+      .container {
+        padding: 0.5rem;
+      }
+
+      th, td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      input[type="number"] {
+        width: 90%;
+        font-size: 0.875rem;
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+      }
+
+      .result, .message {
+        font-size: 1rem;
+      }
+    }
+
+    /* Media Queries pour les écrans de taille moyenne (tablettes) */
+    @media (min-width: 601px) and (max-width: 1024px) {
+      .container {
+        max-width: 95%;
+      }
+
+      th, td {
+        padding: 0.75rem;
+        font-size: 1rem;
+      }
+
+      input[type="number"] {
+        width: 85%;
+      }
     }
   </style>
 </head>
@@ -190,8 +247,8 @@
       if (isNaN(value) || value < 0 || value > 20) {
         errorMessage.textContent = 'Veuillez entrer une valeur entre 0 et 20.';
         input.style.borderColor = '#F44336';
-        input.classList.add('shake'); // Ajouter l'animation de vibration
-        setTimeout(() => input.classList.remove('shake'), 500); // Retirer l'animation après 0.5s
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 500);
       } else {
         errorMessage.textContent = '';
         input.style.borderColor = '';
@@ -214,7 +271,7 @@
 
     function updateModuleAverage(moduleId) {
       const average = calculateModuleAverage(moduleId);
-      const avgCell = document.getElementById(`${module.id}_avg`);
+      const avgCell = document.getElementById(`${moduleId}_avg`);
       if (!isNaN(average)) {
         avgCell.textContent = average.toFixed(2);
         avgCell.className = getResultClass(average);
@@ -229,7 +286,6 @@
       let totalCoefficients = 0;
       let hasError = false;
 
-      // Vérifier si toutes les valeurs sont valides
       modules.forEach(module => {
         const td = parseFloat(document.getElementById(`${module.id}_td`).value);
         const cc = parseFloat(document.getElementById(`${module.id}_cc`).value);
@@ -237,7 +293,6 @@
 
         if (isNaN(td) || td < 0 || td > 20 || isNaN(cc) || cc < 0 || cc > 20 || isNaN(exam) || exam < 0 || exam > 20) {
           hasError = true;
-          // Faire vibrer les cases invalides
           if (isNaN(td) || td < 0 || td > 20) document.getElementById(`${module.id}_td`).classList.add('shake');
           if (isNaN(cc) || cc < 0 || cc > 20) document.getElementById(`${module.id}_cc`).classList.add('shake');
           if (isNaN(exam) || exam < 0 || exam > 20) document.getElementById(`${module.id}_exam`).classList.add('shake');
@@ -248,10 +303,9 @@
         document.getElementById('error-message').textContent = 'Veuillez corriger les valeurs erronées (doivent être entre 0 et 20).';
         document.getElementById('general_result').textContent = 'Moyenne Générale: --';
         document.getElementById('semester-message').textContent = '';
-        return; // Ne pas calculer la moyenne si une valeur est erronée
+        return;
       }
 
-      // Calculer la moyenne générale si toutes les valeurs sont valides
       modules.forEach(module => {
         const moduleAverage = calculateModuleAverage(module.id);
         if (!isNaN(moduleAverage)) {
@@ -298,7 +352,6 @@
     document.getElementById('calculate-btn').addEventListener('click', calculateGeneralAverage);
     document.getElementById('reset-btn').addEventListener('click', resetForm);
 
-    // Initialiser les lignes du tableau
     createModuleRows();
   </script>
 </body>
