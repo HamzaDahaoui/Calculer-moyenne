@@ -41,8 +41,8 @@
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 1rem;
-      overflow-x: auto; /* Permet le défilement horizontal sur les petits écrans */
-      display: block; /* Nécessaire pour le défilement */
+      overflow-x: auto;
+      display: block;
     }
 
     th, td {
@@ -193,7 +193,6 @@
       <thead>
         <tr>
           <th>Module</th>
-          <th>TD</th>
           <th>CC</th>
           <th>Examen</th>
           <th>Coefficient</th>
@@ -229,7 +228,6 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${module.name}</td>
-          <td><input type="number" id="${module.id}_td" step="0.01" min="0" max="20" oninput="validateInput('${module.id}_td')"></td>
           <td><input type="number" id="${module.id}_cc" step="0.01" min="0" max="20" oninput="validateInput('${module.id}_cc')"></td>
           <td><input type="number" id="${module.id}_exam" step="0.01" min="0" max="20" oninput="validateInput('${module.id}_exam')"></td>
           <td>${module.coefficient}</td>
@@ -254,19 +252,21 @@
         input.style.borderColor = '';
         input.classList.remove('shake');
         updateModuleAverage(inputId.split('_')[0]);
+
+        // Sauvegarder la valeur dans le localStorage
+        localStorage.setItem(inputId, value);
       }
     }
 
     function calculateModuleAverage(moduleId) {
-      const td = parseFloat(document.getElementById(`${moduleId}_td`).value) || 0;
       const cc = parseFloat(document.getElementById(`${moduleId}_cc`).value) || 0;
       const exam = parseFloat(document.getElementById(`${moduleId}_exam`).value) || 0;
 
-      if (isNaN(td) || isNaN(cc) || isNaN(exam)) {
+      if (isNaN(cc) || isNaN(exam)) {
         return NaN;
       }
 
-      return (td * 0.2) + (cc * 0.2) + (exam * 0.6);
+      return (cc * 0.4) + (exam * 0.6);
     }
 
     function updateModuleAverage(moduleId) {
@@ -287,13 +287,11 @@
       let hasError = false;
 
       modules.forEach(module => {
-        const td = parseFloat(document.getElementById(`${module.id}_td`).value);
         const cc = parseFloat(document.getElementById(`${module.id}_cc`).value);
         const exam = parseFloat(document.getElementById(`${module.id}_exam`).value);
 
-        if (isNaN(td) || td < 0 || td > 20 || isNaN(cc) || cc < 0 || cc > 20 || isNaN(exam) || exam < 0 || exam > 20) {
+        if (isNaN(cc) || cc < 0 || cc > 20 || isNaN(exam) || exam < 0 || exam > 20) {
           hasError = true;
-          if (isNaN(td) || td < 0 || td > 20) document.getElementById(`${module.id}_td`).classList.add('shake');
           if (isNaN(cc) || cc < 0 || cc > 20) document.getElementById(`${module.id}_cc`).classList.add('shake');
           if (isNaN(exam) || exam < 0 || exam > 20) document.getElementById(`${module.id}_exam`).classList.add('shake');
         }
@@ -332,17 +330,37 @@
 
     function resetForm() {
       modules.forEach(module => {
-        document.getElementById(`${module.id}_td`).value = '';
         document.getElementById(`${module.id}_cc`).value = '';
         document.getElementById(`${module.id}_exam`).value = '';
         document.getElementById(`${module.id}_avg`).textContent = '--';
         document.getElementById(`${module.id}_avg`).className = '';
+
+        // Supprimer les valeurs du localStorage
+        localStorage.removeItem(`${module.id}_cc`);
+        localStorage.removeItem(`${module.id}_exam`);
       });
 
       document.getElementById('general_result').textContent = 'Moyenne Générale: --';
       document.getElementById('general_result').className = 'result';
       document.getElementById('error-message').textContent = '';
       document.getElementById('semester-message').textContent = '';
+    }
+
+    function loadSavedValues() {
+      modules.forEach(module => {
+        const cc = localStorage.getItem(`${module.id}_cc`);
+        const exam = localStorage.getItem(`${module.id}_exam`);
+
+        if (cc !== null) {
+          document.getElementById(`${module.id}_cc`).value = cc;
+        }
+        if (exam !== null) {
+          document.getElementById(`${module.id}_exam`).value = exam;
+        }
+
+        // Mettre à jour la moyenne du module si les valeurs sont chargées
+        updateModuleAverage(module.id);
+      });
     }
 
     function getResultClass(average) {
@@ -352,7 +370,10 @@
     document.getElementById('calculate-btn').addEventListener('click', calculateGeneralAverage);
     document.getElementById('reset-btn').addEventListener('click', resetForm);
 
-    createModuleRows();
+    window.addEventListener('load', () => {
+      createModuleRows();
+      loadSavedValues(); // Charger les anciennes valeurs
+    });
   </script>
 </body>
 </html>
